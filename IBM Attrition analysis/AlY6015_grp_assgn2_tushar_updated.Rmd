@@ -1,0 +1,433 @@
+---
+title: "Group_analysis_2"
+author: "Tushar Parimi"
+date: "2/7/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Reading the dataset
+```{r,echo=FALSE}
+
+setwd("C:\\Users\\tusha\\OneDrive\\Desktop\\MPS_Alalytics\\Intermediate_analytics")
+
+ibm<-read.csv("File_two.csv")
+cat("Number of records in dataset:",nrow(ibm))
+cat("\nFirst few records:\n")
+head(ibm,5)
+```
+
+
+## Business Problem:
+
+* Are variables Age, Department, Environment satisfaction, Job satisfaction, Monthly income, Work life balance, Years At company, Years since last promotion of employees good predictors of the outcome variable attrition? Can the above factors be used to get a good prediction of attrition of employees.
+
+* Here the outcome variable attrition is a binary variable with values Yes and No.
+
+## Data Description:
+
+* This dataset contains information about IBM employees. This is a popular dataset to predict attrition of employees.
+
+* Here we will be predicting attrition of employees using variables like Age, Department, Environment satisfaction, Job satisfaction, Monthly income, Work life balance, Years at company and Years since last promotion.
+
+* It is always good to do summary statistics of the relevant variables to better understand our data.
+
+
+### Age
+
+* This is a discrete variable which shows the age of employees.
+
+```{r,echo=FALSE,warning=FALSE}
+library(ggplot2)
+library(moments)
+#measure of central tendency
+cat("Mean =",mean(ibm$Age),"\n")
+cat("Median =",median(ibm$Age),"\n")
+#measure of variance
+cat("Standard deviation",sd(ibm$Age),"\n")
+cat("Range",range(ibm$Age),"\n")
+#measure of distribution
+cat("Summary\n")
+summary(ibm$Age)
+ggplot(ibm,aes(x=Age))+geom_histogram(color="blue",fill="cadet blue")+ggtitle("Histogram of Age of IBM employees")+theme(axis.text=element_text(size=5),axis.title=element_text(size=7))
+cat("Skewness =",skewness(ibm$Age),"\n")
+cat("Kurtosis =",kurtosis(ibm$Age),"\n")
+```
+
+* We can see that there is not sharp peak for the distribution of employees according to age.
+
+* The mean age of employees is around 38 years .
+
+* Maximum age of employees in IBM is 60 and minimum age is 18. This tells us the Over18 column in the dataset only has values yes.
+
+### Department
+
+* The department in which the employee works. Categorical variable with 6 levels
+
+```{r,echo=FALSE}
+fDepartment<-as.factor(ibm$Department)
+cat("structure of department variable:\n")
+str(fDepartment)
+cat("\nCount table of employees in various departments:\n")
+table(fDepartment)
+ggplot(ibm,aes(x=Department))+geom_bar(fill="orange")+ggtitle("Frequency distribution of employees according to the department they work in")+theme(axis.text=element_text(size=5),axis.title=element_text(size=7))
+
+```
+
+* We can see that the employees are almost equally distributed in all the departments in the company.
+
+* Sales department have comparatively slightly more employees.
+
+### Environment Satisfaction
+
+* This is a categorical variable with 4 levels that shows how satisfied an employee is with the work environment.
+
+```{r,echo=FALSE}
+fEnvironmentSatisfaction<-as.factor(ibm$EnvironmentSatisfaction)
+cat("Structure of Environment satisfaction variable:\n")
+str(fEnvironmentSatisfaction)
+cat("\nCount table of employees according to Environment satisfaction:\n")
+table(fEnvironmentSatisfaction)
+ggplot(ibm,aes(x=EnvironmentSatisfaction))+geom_bar(fill="maroon")+ggtitle("Frequency distribution of employees according to the environment satisfaction")+theme(axis.text=element_text(size=5),axis.title=element_text(size=7))
+```
+
+* The employees are almost equally distributed according to environment satisfaction.
+
+### Job Satisfaction
+
+* It is a categorical variable with 4 levels that shows how satisfied an employee is with the job.
+
+```{r,echo=FALSE}
+fJobSatisfaction<-as.factor(ibm$JobSatisfaction)
+cat("Structure of Job satisfaction variable:\n")
+str(fJobSatisfaction)
+cat("\nCount table of employees according to Job satisfaction variable:\n")
+table(fJobSatisfaction)
+ggplot(ibm,aes(x=JobSatisfaction))+geom_bar(fill="skyblue3")+ggtitle("Frequency distribution of employees according to job satisfaction")
+```
+
+* Employees are almost equally distributed according to Job satisfaction.
+
+### Monthly income
+
+* It is a continuous variable that shows the monthly income of employees.
+
+```{r,echo=FALSE,warning=FALSE}
+
+#measure of central tendency
+cat("Mean =",mean(ibm$MonthlyIncome),"\n")
+cat("Median =",median(ibm$MonthlyIncome),"\n")
+#measure of variance
+cat("Standard deviation",sd(ibm$MonthlyIncome),"\n")
+cat("Range",range(ibm$MonthlyIncome),"\n")
+#measure of distribution
+cat("Summary\n")
+summary(ibm$MonthlyIncome)
+ggplot(ibm,aes(x=MonthlyIncome))+geom_histogram(color="black",fill="cadet blue")+ggtitle("Histogram of Monthly income of IBM employees")+theme(axis.text=element_text(size=5),axis.title=element_text(size=7))
+cat("Skewness =",skewness(ibm$MonthlyIncome),"\n")
+cat("Kurtosis =",kurtosis(ibm$MonthlyIncome),"\n")
+```
+
+* The average monthly income of employees is found to be 26083.86.
+
+* Minimum monthly salary earned by employees is 1009 and maximum monthly salary is 50999.
+
+### Work life balance
+
+* It is a categorical variable with 4 levels showing work life balance of the employee
+
+```{r,echo=FALSE}
+fWorkLifeBalance<-as.factor(ibm$WorkLifeBalance)
+cat("Structure of the variable:\n")
+str(fWorkLifeBalance)
+cat("\nCount table:\n")
+table(fWorkLifeBalance)
+ggplot(ibm,aes(x=WorkLifeBalance))+geom_bar(fill="sienna")+ggtitle("Frequency distribution of employees according to work life balance")
+```
+
+* The IBM employees are almost equally distributed according to work life balance.
+
+### Years at company
+
+* It is a discrete variable that shows how many years the employee has worked at the company
+
+```{r,echo=FALSE,warning=FALSE}
+
+#measure of central tendency
+cat("Mean =",mean(ibm$YearsAtCompany),"\n")
+cat("Median =",median(ibm$YearsAtCompany),"\n")
+#measure of variance
+cat("Standard deviation",sd(ibm$YearsAtCompany),"\n")
+cat("Range",range(ibm$YearsAtCompany),"\n")
+#measure of distribution
+cat("Summary\n")
+summary(ibm$YearsAtCompany)
+ggplot(ibm,aes(x=YearsAtCompany))+geom_histogram(color="black",fill="maroon")+ggtitle("Histogram of Years at company of IBM employees")+theme(axis.text=element_text(size=5),axis.title=element_text(size=7))
+cat("Skewness =",skewness(ibm$YearsAtCompany),"\n")
+cat("Kurtosis =",kurtosis(ibm$YearsAtCompany),"\n")
+```
+
+* All employees at an average have worked for 10.8 years at the company.
+
+* There are employees who worked for 40 years at the company.
+
+### Years since last promotion
+
+* This is a discrete variable that tell us the count of years since the employee's last promotion.
+
+```{r,echo=FALSE,warning=FALSE}
+
+#measure of central tendency
+cat("Mean =",mean(ibm$YearsSinceLastPromotion),"\n")
+cat("Median =",median(ibm$YearsSinceLastPromotion),"\n")
+#measure of variance
+cat("Standard deviation",sd(ibm$YearsSinceLastPromotion),"\n")
+cat("Range",range(ibm$YearsSinceLastPromotion),"\n")
+#measure of distribution
+cat("Summary\n")
+summary(ibm$YearsSinceLastPromotion)
+ggplot(ibm,aes(x=YearsSinceLastPromotion))+geom_histogram(color="black",fill="cadet blue")+ggtitle("Histogram of Years Since Last Promotion of IBM employees")+theme(axis.text=element_text(size=5),axis.title=element_text(size=7))
+cat("Skewness =",skewness(ibm$YearsSinceLastPromotion),"\n")
+cat("Kurtosis =",kurtosis(ibm$YearsSinceLastPromotion),"\n")
+```
+
+* Most employees are in the range of 1 to 5 years since their last promotion.
+
+* The distribution is higly skewed with long tail on right side.
+
+### Attrition
+
+* It is a binary outcome variable with values yes ansd no showing the attrition of employees.
+
+```{r,echo=FALSE}
+fAttrition<-as.factor(ibm$Attrition)
+cat("Structure of Attrition variable:\n")
+str(fAttrition)
+cat("\nCount table:\n")
+table(fAttrition)
+ggplot(ibm,aes(x=Attrition))+geom_bar(fill="sienna3")+ggtitle("Frequency distribution of employees according to Attrition")
+
+```
+
+* The employees are almost equally distributed with slightly more employees with attrition yes.
+
+```{r,echo=FALSE}
+df<-data.frame(ibm$Attrition,ibm$Age, ibm$Department, ibm$EnvironmentSatisfaction, ibm$JobSatisfaction, ibm$MonthlyIncome, ibm$WorkLifeBalance, ibm$YearsAtCompany, ibm$YearsSinceLastPromotion)
+cat("Summary table of relevant variables:\n")
+summary(df)
+```
+
+## Analysis:
+
+* Here we are going to create a logistic regression model in glm for the outcome variable Attrition with predictor varibles Age, Department, Environment satisfaction, Job satisfaction, Monthly income, Work life balance, Years at company and Years since last promotion.
+
+* In this analysis my part of dataset(earlier divided between the group) was again divided into training and testing dataset for the analysis of the model. two sets of training and testing data were used 75-25% and 60-40%
+
+```{r,echo=FALSE}
+train_75<-read.csv("train_75.csv")
+test_75<-read.csv("test_75.csv")
+train_60<-read.csv("train_60.csv")
+test_60<-read.csv("test_60.csv")
+```
+
+### Fitting Logistic regression model using 75% training dataset
+
+```{r,echo=FALSE}
+
+
+fit75<-glm(as.factor(Attrition)~Age+Department+EnvironmentSatisfaction+JobSatisfaction+MonthlyIncome+WorkLifeBalance+YearsAtCompany+YearsSinceLastPromotion,data=train_75,family=binomial(), control=glm.control(trace=TRUE))
+summary(fit75)
+
+```
+
+
+* We can see that the p values obtained are not significant. Only YearsAtCompany shows a good value for 0.1 significance code.
+
+* This here does not show signs of a good model.
+
+* Therefore the variables choosen may not be making a significant contribution to the equation.
+
+* According to the estimates the equation turns out to be, log(odds of Attrition being yes)= (4.113e-02)+(-2.000e-04)*Age + (8.830e-04)*DepartmentHuman Resources + (2.751e-02)*DepartmentResearch & Development + (8.426e-02)*DepartmentSales + (1.790e-02)*DepartmentSoftware + (-1.648e-02)*DepartmentSupport + (5.659e-03)*EnvironmentSatisfaction + (5.431e-03)*JobSatisfaction + (-1.902e-06)*MonthlyIncome + (-2.620e-03)*WorkLifeBalance + (-5.233e-03)*YearsAtCompany + (4.256e-03)*YearsSinceLastPromotion
+
+
+### Plotting effect plot with respect to different predictor variables
+
+#### Age effect plot
+
+```{r,echo=FALSE}
+library("effects")
+par(col.axis="blue", font.axis=4, cex.axis=1.5)
+plot(Effect("Age", fit75) , axes=list(x=list(cex=0.5),y=list(cex=0.5)))
+
+
+```
+
+* The above plot shows how probability of attrition changes with variation in age. We can see that probability decreases with increase in age.
+
+#### Department effect plot
+
+```{r,echo=FALSE}
+library(gridExtra)
+plot(Effect("Department",fit75), axes=list(x=list(cex=0.5),y=list(cex=0.5)))
+
+
+```
+
+* The above plot shows how the probability of attrition changes with different category of department. We can see that Sales depaartment has most probability for attrition.
+
+#### Environment Satisfaction effect plot
+
+```{r,echo=FALSE}
+plot(Effect("EnvironmentSatisfaction",fit75), axes=list(x=list(cex=0.5),y=list(cex=0.5)))
+```
+
+* The above plot shows how probability of attrition changes with environment satisfaction level of employees. We can see that there is a slight increase in probability with higher level of environment satisfaction. 
+
+#### Job Satisfaction effect plot
+
+```{r,echo=FALSE}
+plot(Effect("JobSatisfaction",fit75), axes=list(x=list(cex=0.5),y=list(cex=0.5)))
+```
+
+* The above plot shows how probability of attrition changes with job satisfaction level of employees. We can see that there is a slight increase in probability with higher level of job satisfaction. 
+
+#### Monthly Income effect plot
+
+```{r,echo=FALSE}
+plot(Effect("MonthlyIncome",fit75), axes=list(x=list(cex=0.5),y=list(cex=0.5)))
+```
+
+* The above plot shows how probability of attrition changes with monthly income of employees. We can see that there is a decrease in probability with higher monthly income. 
+
+#### Work life balance effect plot
+
+```{r,echo=FALSE}
+plot(Effect("WorkLifeBalance",fit75), axes=list(x=list(cex=0.5),y=list(cex=0.5)))
+```
+
+* The above plot shows how probability of attrition changes with work life balance level of employees. We can see that there is a slight decrease in probability with higher level of work life balance. 
+
+#### Years at company effect plot
+
+```{r,echo=FALSE}
+plot(Effect("YearsAtCompany",fit75), axes=list(x=list(cex=0.5),y=list(cex=0.5)))
+```
+
+* The above plot shows how probability of attrition changes with years at company of employees. We can see that there is a decrease in probability with increase in years at comapany of employees. 
+
+#### Years since last promotion effect plot
+```{r,echo=FALSE}
+plot(Effect("YearsSinceLastPromotion",fit75), axes=list(x=list(cex=0.5),y=list(cex=0.5)))
+```
+
+* The above plot shows how probability of attrition changes with Years since last promotion of employees. We can see that there is a slight increase in probability with increse in employee's years since last promotion. 
+
+### using test dataset to predict
+
+```{r,echo=FALSE}
+predict <- predict(fit75, test_75, type = 'response')
+# confusion matrix
+table_mat <- table(test_75$Attrition, predict > 0.5)
+cat("This is the confusion matrix for the model\n")
+table_mat
+accuracy_Test <- sum(diag(table_mat)) / sum(table_mat)
+cat("\nThe accuracy of the test is\n")
+accuracy_Test
+```
+
+* We get an accuracy of 50.8% in this model.
+
+
+### ROC plot for the model
+
+```{r,echo=FALSE}
+library(ROCR)
+ROCRpred <- prediction(predict, test_75$Attrition)
+ROCRperf <- performance(ROCRpred, 'tpr', 'fpr')
+plot(ROCRperf, colorize = TRUE, text.adj = c(-0.2, 1.7))
+```
+
+* The ROC plot shows a model with almost no predictive power.
+
+* Which means the model almost predicts only as good as by chance.
+
+
+### Fitting logistic regression model using 60% training dataset
+
+```{r,echo=FALSE}
+fit60<-glm(as.factor(Attrition)~Age+Department+EnvironmentSatisfaction+JobSatisfaction+MonthlyIncome+WorkLifeBalance+YearsAtCompany+YearsSinceLastPromotion,data=train_60,family=binomial())
+summary(fit60)
+```
+
+* Using 60% training datset we get a significant p-value of 0.0361 for Environment satisfaction.
+
+* The other predictors here also do not show significant p-values.
+
+* Here we get a better AIC value for the model.
+
+```{r,echo=FALSE}
+predict <- predict(fit60, test_60, type = 'response')
+# confusion matrix
+table_mat <- table(test_60$Attrition, predict > 0.5)
+cat("This is the confusion matrix for the model\n")
+table_mat
+accuracy_Test <- sum(diag(table_mat)) / sum(table_mat)
+cat("\nThe accuracy of the test is\n")
+accuracy_Test
+
+```
+
+* The acccuracy of the model is still around 50%. 
+
+## Analysis based on the predictors used in a similar research paper on employee attrition prediction
+
+* The paper used some feature selection methods like Recursive Feature Elimination (RFE) and SelectKBest to select the best features for the model.
+
+* The paper was based on comparison of different models for attrition prediction. I have simply used the predictors they selected for the logistic regression model.
+
+* Predictors to be used: EnvironmentSatisfaction,JobSatisfaction,WorkLifeBalance,Gender,MaritalStatus,JobInvolvement,PerformanceRating,TrainingTimesLastYear.
+
+```{r,echo=FALSE}
+fitnow<-glm(as.factor(Attrition)~EnvironmentSatisfaction+JobSatisfaction+WorkLifeBalance+Gender+MaritalStatus+JobInvolvement+PerformanceRating+TrainingTimesLastYear,data=train_75,family=binomial(), control=glm.control(trace=TRUE))
+summary(fitnow)
+```
+
+* This model gives significant pvalues for predictors like marital status and the amount of training the employee did last year which tells us there is higher chance of the corresponding coefficients not being zero.
+
+* These predictors were not used in the previous model.
+
+```{r,echo=FALSE}
+predict <- predict(fitnow, test_75, type = 'response')
+# confusion matrix
+table_mat <- table(test_75$Attrition, predict > 0.5)
+cat("This is the confusion matrix for the model\n")
+table_mat
+accuracy_Test <- sum(diag(table_mat)) / sum(table_mat)
+cat("\nThe accuracy of the test is\n")
+accuracy_Test
+```
+
+
+
+* This model also gives us an accuracy of around 51% which is not much of an improvement from the previous model.
+
+* Although this model showed significant relation between a few predictors and response variable, the accuracy of the model is almost the same.
+
+## Conclusion:
+
+The model fitted only gives around a 50% accuracy. Thus the above model with predictors Age, Department, Environment satisfaction, Job satisfaction, Monthly income, Work life balance, Years at company and Years since last promotion do not predict the attrition of employees with significant accuracy.
+The other model which used predictors that were used in a similar research paper also only gave an acuuracy of 51%. It showed some improvement in the estimate being significant but the accuracy remained the same.
+
+
+## References:
+
+* Ben Yahia, Nesrine & Jihen, Hlel & Colomo-Palacios, Ricardo. (2021). From Big Data to Deep Data to Support People Analytics for Employee Attrition Prediction. IEEE Access. PP. 1-1. 10.1109/ACCESS.2021.3074559. 
+
+* Kshitiz Sirohi, (2018), "Simply Explained Logistic Regression with Example in R", retrieved from, https://towardsdatascience.com/simply-explained-logistic-regression-with-example-in-r-b919acb1d6b3
+
+* John Fox and Sanford Weisberg, (2018), "Predictor Effects Graphics Gallery", retrieved from, https://cran.r-project.org/web/packages/effects/vignettes/predictor-effects-gallery.pdf
+
+

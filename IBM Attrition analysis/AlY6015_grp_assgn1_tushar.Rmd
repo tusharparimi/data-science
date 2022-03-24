@@ -1,0 +1,239 @@
+---
+title: "IBM HR analytics"
+author: "Tushar Parimi"
+date: "1/24/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Data description
+
+* The HR analytics dataset has data about the employees of IBM. The original IBM dataset has only 1470 rows therefore many records were generated through random logic in VBA.
+
+* This is a popular dataset used to predict attrittion of valuable employees.Also has various other variables like monthly income, performance rating etc., that can be analysed as response variables.
+
+* The dataset choosen had 35 variables and 50000 records.The dataset was then divided into three parts using random sampling. Therefore the dataset I work on will have 16666 records.
+
+* HR analytics is the collection and application of talent data to improve critical talent and business outcomes. HR analytics leaders enable HR leaders to develop data-driven insights to inform talent decisions, improve workforce processes and promote positive employee experience.
+
+## Research questions
+
+Some research question that can be asked are as follows,
+
+* Does Monthly income of employees depend upon how often an employee has to travel for work related endeavours?
+
+* Does variables like employee's field of education or their job role have any association individually or combined with how much their income is monthly?
+
+
+## Analytical strategy
+
+* The plan is to perform summary statistics for relevant variables to better understand the data available.
+
+* Then to analyze whether the monthly income depends on how often an employee travels for business, we will do a chi square test to test the association between the variables MonthlyIncome and BusinessTravel. MonthlyIncome will be converted into a categorical variable as chi square test is performed for two categorical variables. A contingency table can be created to visualize the distribution od employees between the two variables.
+
+* Then to test the dependency of Monthly income on variables Education Field and Job Role we will conduct a two way anova test which will also test the effect of interaction of Education field and Job role on monthly income of employees.
+
+## Exploratory Data Analysis
+
+### Reading the dataset
+
+```{r}
+#Packages
+library(moments)
+library(ggplot2)
+library(ggcorrplot)
+library("graphics")
+library("ggpubr")
+#Reading the dataset
+getwd()
+setwd("C:\\Users\\tusha\\OneDrive\\Desktop\\MPS_Alalytics\\Intermediate_analytics")
+getwd()
+ibm<-read.csv("File_two.csv")
+head(ibm,5)
+nrow(ibm)
+summary(ibm)
+str(ibm)
+ribm<-ibm[,c("MonthlyIncome","Age","BusinessTravel","Department","Education","EducationField","Gender","HourlyRate","JobInvolvement","JobLevel","JobRole","PerformanceRating","YearsAtCompany","YearsInCurrentRole","YearsWithCurrManager" )]
+ribm$BusinessTravel<-as.factor(ribm$BusinessTravel)
+ribm$Department<-as.factor(ribm$Department)
+ribm$EducationField<-as.factor(ribm$EducationField)
+ribm$Gender<-as.factor(ribm$Gender)
+ribm$JobRole<-as.factor(ribm$JobRole)
+str(ribm)
+```
+
+### Summary statistics of relevant variables
+
+#### Age of employees
+
+```{r}
+#measure of central tendency
+mean(ibm$Age)
+median(ibm$Age)
+#measure of variance
+sd(ibm$Age)
+range(ibm$Age)
+#measure of distribution
+summary(ibm$Age)
+ggplot(ibm,aes(x=Age))+geom_histogram(color="blue",fill="cyan")+ggtitle("Histogram of Age of IBM employees")
+skewness(ibm$Age)
+kurtosis(ibm$Age)
+```
+
+#### BussinessTravel
+
+How often employees travel for business
+
+```{r}
+ggplot(ibm,aes(x=BusinessTravel))+geom_bar(fill="dark green",width=0.5)+ggtitle("Frequency distribution of How often Employees have business travel")
+```
+
+
+#### Department
+The department in which the employee works. Categorical variable with 6 levels
+
+```{r}
+fDepartment<-as.factor(ibm$Department)
+str(fDepartment)
+ggplot(ibm,aes(x=Department))+geom_bar(fill="orange")+ggtitle("Frequency distribution of employees according to the department they work in")
+```
+
+
+#### EducationField
+The education field of the employee. Categorical variable 6 levels
+
+```{r}
+fEducationField<-as.factor(ibm$EducationField)
+str(fEducationField)
+ggplot(ibm,aes(x=EducationField))+geom_bar(fill="yellow")+ggtitle("Frequency distribution of employees based on their field of education")
+```
+
+#### Gender
+Tells the gender of the employee. Categorical variable with 2 levels male and female
+
+```{r}
+ggplot(ibm,aes(x=Gender))+geom_bar(fill="violet")+ggtitle("Frequency distribution of employees based on gender")
+```
+
+
+#### YearsAtCompany
+Tells how long(in years) the employee has been at the company.Integer variable.
+
+```{r}
+#measure of central tendency
+mean(ibm$YearsAtCompany)
+median(ibm$YearsAtCompany)
+#measure of variance
+sd(ibm$YearsAtCompany)
+range(ibm$YearsAtCompany)
+#measure of distribution
+summary(ibm$YearsAtCompany)
+ggplot(ibm,aes(x=YearsAtCompany))+geom_histogram(color="dark green",fill="green")+ggtitle("Histogram of Years at company of IBM employees")
+skewness(ibm$YearsAtCompany)
+kurtosis(ibm$YearsAtCompany)
+```
+
+#### MonthlyIncome
+Tells the monthly income of the employee. Continuous variable
+
+```{r}
+#measure of central tendency
+mean(ibm$MonthlyIncome)
+median(ibm$MonthlyIncome)
+#measure of variance
+sd(ibm$MonthlyIncome)
+range(ibm$MonthlyIncome)
+#measure of distribution
+summary(ibm$MonthlyIncome)
+ggplot(ibm,aes(x=MonthlyIncome))+geom_histogram(color="black",fill="grey")+ggtitle("Histogram of Monthly income of IBM employees")
+skewness(ibm$MonthlyIncome)
+kurtosis(ibm$MonthlyIncome)
+```
+
+#### Correlation plot to check which numerical factors might effect monthly income
+
+```{r}
+df<-data.frame(ibm$MonthlyIncome,ibm$YearsAtCompany,ibm$Age)
+corp<-cor(df)
+ggcorrplot(corp)
+```
+
+From above plot we can see that Age and Year at company do not significantly correlate with monthly income of employees.
+
+### Question 1 analysis
+
+#### Chi square test between Monthly income and Business Travel
+
+* Here the monthly income initially being a continuous variable is converted into a categorical variable with 4 levels divided based on quantiles 25%,50% and 75%.
+* The contingency table of Monthly income and Business travel is shown below
+
+```{r}
+cat_MonthlyIncome<-cut(ribm$MonthlyIncome,include.lowest = TRUE,breaks=quantile(ribm$MonthlyIncome,prob=c(0,0.25,0.50,0.75,1)),labels=c('low','medium','high','very high'))
+
+MvB<-table(cat_MonthlyIncome,ribm$BusinessTravel)
+MvB
+```
+
+* Plotting a mosaic plot to better visualize the table
+```{r}
+mosaicplot(MvB, shade = TRUE, las=2,main = "Monthly income and business travel of employees")
+```
+
+* Now conducting the chi square test
+Null Hypothesis: The monthly income is independent of business travel of employees
+Alternate Hypothesis: The monthly income is not independent of business travel of employees
+```{r}
+chisq.test(MvB)
+```
+
+Since pvalue is greater than the level of significance 0.05. Therefore we do not reject Null Hypothesis. Hence monthly income of employees is not significantly dependent on how often employees travel for business
+
+### Question 2 analysis
+
+#### Two way ANOVA test for response variable monthly income and independent variables education field and job role.
+
+
+* Here is the contingency table between education field and job role of employees
+```{r}
+table(ibm$EducationField , ibm$JobRole)
+```
+
+* Visualizing the scenario using boxplots
+```{r}
+dfa<-data.frame(ibm$EducationField , ibm$JobRole , ibm$MonthlyIncome)
+ggboxplot(dfa, x = "ibm.JobRole", y = "ibm.MonthlyIncome", color = "ibm.EducationField")+theme(axis.text=element_text(size=4))
+
+```
+
+* Now conducting the two way ANOVA test,
+Null Hypothesis1: There is no effect of education field on monthly income of employees
+Alternate hypothesis1: There is effect of education field on monthly income of employees
+
+Null Hypothesis2: There is no effect of job role on monthly income of employees
+Alternate hypothesis2: There is effect of job role on monthly income of employees
+
+Null hypotheis3: There is no interaction effect between education field and job role on monthly income of employees
+Alternate hypothesis3: There is interaction effect between education field and job role on monthly income of employees
+
+```{r}
+res<-aov(ibm$MonthlyIncome ~ as.factor(ibm$EducationField) * as.factor(ibm$JobRole))
+summary(res)
+```
+1.
+Since pvalue=0.0337 which is less than level of significance 0.05.Therefore we reject null hypothesis for education field. Hence education field has an effect on monthly income of employees
+
+2.
+Since pvalue=0.8356 is greater than level of significance, we do not reject null hypothesis for job role. Hence job role does not have a significant effect on monthly income of employees
+
+3.
+Since pvalue=0.2423 is greater than level of significance, we do not reject null hypothesis for interaction effect of education field and job role. Hence interaction of education field and job role does not have a significant effect on monthly income of employees
+
+
+### Conclusion
+
+From the above analysis we can say that only education field of employees significantly effects the monythly income of IBM. Other variables like job role, business travel and also numerical variables like years at company and age of employees were analyzed but found to not significantly effect the monthly income of employees.
+
+

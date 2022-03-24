@@ -1,0 +1,172 @@
+---
+title: "ALY6015_grp_assgn3"
+author: "Tushar Parimi"
+date: "2/18/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+
+In this part we will be applying a second approach on the business problem we stated for the project(i.e Attrition analysis and prediction). In the previous approach we used a logistic regression model, in this approach we will be using the LASSO regression model.
+
+
+
+```{r,echo=FALSE}
+#Loading the training and testing datasets divided using random sampling before for use in first approach
+train_75<-read.csv("train_75.csv")
+test_75<-read.csv("test_75.csv")
+```
+
+### Reading the dataset
+
+```{r,echo=FALSE}
+setwd("C:\\Users\\tusha\\OneDrive\\Desktop\\MPS_Alalytics\\Intermediate_analytics")
+
+ibm<-read.csv("File_two.csv")
+cat("Number of records in dataset:",nrow(ibm))
+cat("\nFirst few records:\n")
+head(ibm,5)
+```
+
+### Checking for NULL values
+
+```{r,echo=FALSE}
+cat("Number of records that contain NULL values =",sum(is.na(ibm)),"\n")
+```
+
+### Converting the Response variable Attrition into Binary type
+
+Here we are converting the Attrrition response variable into binary type where "yes" being 1 and "No" being 0.
+
+```{r,echo=FALSE}
+train_75$Attrition[train_75$Attrition=="Yes"]<-1
+train_75$Attrition[train_75$Attrition!=1]<-0
+train_75$Attrition<-as.numeric(train_75$Attrition)
+cat("Dataset after converting Attrition:\n")
+head(train_75,5)
+cat("Type of Attritin variable in dataset:",typeof(train_75$Attrition))
+
+test_75$Attrition[test_75$Attrition=="Yes"]<-1
+test_75$Attrition[test_75$Attrition!=1]<-0
+test_75$Attrition<-as.numeric(test_75$Attrition)
+
+```
+
+### Defining the response variable and matrix of predictors for input into the LASSO regression
+
+```{r,echo=FALSE}
+#define response variable
+y <- train_75$Attrition
+cat("Summary statistics of response variable Attrition;\n")
+summary(as.factor(y))
+
+#define matrix of predictor variables
+x <- data.matrix(train_75[, c("Age","BusinessTravel","DailyRate","Department","DistanceFromHome","Education","EducationField","EnvironmentSatisfaction","Gender","HourlyRate","JobInvolvement","JobLevel","JobRole","JobSatisfaction",   "MaritalStatus","MonthlyIncome","MonthlyRate","NumCompaniesWorked","OverTime","PercentSalaryHike","PerformanceRating","RelationshipSatisfaction","StandardHours","StockOptionLevel","TotalWorkingYears","TrainingTimesLastYear",    "WorkLifeBalance","YearsAtCompany","YearsInCurrentRole","YearsSinceLastPromotion","YearsWithCurrManager")])
+
+ibm$BusinessTravel<-as.factor(ibm$BusinessTravel)
+ibm$Education<-as.factor(ibm$Education)
+ibm$Attrition<-as.factor(ibm$Attrition)
+ibm$Department<-as.factor(ibm$Department)
+ibm$EducationField<-as.factor(ibm$EducationField)
+ibm$EnvironmentSatisfaction<-as.factor(ibm$EnvironmentSatisfaction)
+ibm$Gender<-as.factor(ibm$Gender)
+ibm$JobInvolvement<-as.factor(ibm$JobInvolvement)
+ibm$JobLevel<-as.factor(ibm$JobLevel)
+ibm$JobRole<-as.factor(ibm$JobRole)
+ibm$JobSatisfaction<-as.factor(ibm$JobSatisfaction)
+ibm$MaritalStatus<-as.factor(ibm$MaritalStatus)
+ibm$NumCompaniesWorked<-as.factor(ibm$NumCompaniesWorked)
+ibm$OverTime<-as.factor(ibm$OverTime)
+ibm$PerformanceRating<-as.factor(ibm$PerformanceRating)
+ibm$RelationshipSatisfaction<-as.factor(ibm$RelationshipSatisfaction)
+ibm$StockOptionLevel<-as.factor(ibm$StockOptionLevel)
+ibm$TrainingTimesLastYear<-as.factor(ibm$TrainingTimesLastYear)
+ibm$WorkLifeBalance<-as.factor(ibm$WorkLifeBalance)
+
+cat("\nSummary table of predictors being used in the model:\n")
+summary(ibm[c("Age","BusinessTravel","DailyRate","Department","DistanceFromHome","Education","EducationField","EnvironmentSatisfaction","Gender","HourlyRate","JobInvolvement","JobLevel","JobRole","JobSatisfaction",   "MaritalStatus","MonthlyIncome","MonthlyRate","NumCompaniesWorked","OverTime","PercentSalaryHike","PerformanceRating","RelationshipSatisfaction","StandardHours","StockOptionLevel","TotalWorkingYears","TrainingTimesLastYear",    "WorkLifeBalance","YearsAtCompany","YearsInCurrentRole","YearsSinceLastPromotion","YearsWithCurrManager")])
+
+```
+
+## Second Approach:
+
+Here we will be fitting a LASSO regression model to the response variable "Attrition" using the predictors "Age","BusinessTravel","DailyRate","Department","DistanceFromHome","Education","EducationField","EnvironmentSatisfaction","Gender","HourlyRate","JobInvolvement","JobLevel","JobRole","JobSatisfaction",   "MaritalStatus","MonthlyIncome","MonthlyRate","NumCompaniesWorked","OverTime","PercentSalaryHike","PerformanceRating","RelationshipSatisfaction","StandardHours","StockOptionLevel","TotalWorkingYears","TrainingTimesLastYear",    "WorkLifeBalance","YearsAtCompany","YearsInCurrentRole","YearsSinceLastPromotion","YearsWithCurrManager".
+
+* We will be using the cv.glmnet function to find the lambda values.
+
+* Then select the best lambda value which is the minimum of all the lambda values.
+
+```{r,echo=FALSE}
+library(glmnet)
+
+#perform k-fold cross-validation to find optimal lambda value
+cv_model <- cv.glmnet(x, y, alpha = 1)
+
+#find optimal lambda value that minimizes test MSE
+best_lambda <- cv_model$lambda.min
+cat("The best lambda value =",best_lambda,"\n")
+
+
+#produce plot of test MSE by lambda value
+cat("Below is the MSE vs log Lambda values plot\n")
+plot(cv_model) 
+```
+
+### Fitting the LASSO regression model
+
+```{r,echo=FALSE}
+best_model <- glmnet(x, y, alpha = 1, lambda = best_lambda)
+best_model
+coef(best_model)
+```
+
+* Here we can see that a lot of variable coefficients have been brought down to zero or removed by the LASSO model other than Business Travel, Daily rate, Distance from home, Hourly rate, Job Role, Marital Status, Monthly Income, Monthly rate, Percent Salary Hike, Relationship satisfaction, Stock option level, Training time last year and Years at company.
+
+* The coefficients of these variables were removed because the effect of these variables may not have been significant enough.
+
+* This leads to feature selection and reduction of predictors in our model.
+
+### Accuracy testing using the test dataset
+
+```{r,echo=FALSE}
+#define new observation
+new <- data.matrix(test_75[, c("Age","BusinessTravel","DailyRate","Department","DistanceFromHome","Education","EducationField","EnvironmentSatisfaction","Gender","HourlyRate","JobInvolvement","JobLevel","JobRole","JobSatisfaction",   "MaritalStatus","MonthlyIncome","MonthlyRate","NumCompaniesWorked","OverTime","PercentSalaryHike","PerformanceRating","RelationshipSatisfaction","StandardHours","StockOptionLevel","TotalWorkingYears","TrainingTimesLastYear",    "WorkLifeBalance","YearsAtCompany","YearsInCurrentRole","YearsSinceLastPromotion","YearsWithCurrManager")]) 
+
+#use lasso regression model to predict response value
+predict<-predict(best_model, s = best_lambda, newx = new)
+```
+
+
+
+
+```{r,echo=FALSE}
+table_mat <- table(test_75$Attrition, predict > 0.5)
+cat("This is the confusion matrix for the model\n")
+table_mat
+accuracy_Test <- sum(diag(table_mat)) / sum(table_mat)
+
+cat("\nThe accuracy of the test is\n")
+accuracy_Test
+```
+
+* The LASSO regression model gives us an accuracy of 51.3% which is not good and not much of an improvement from the first approach.
+
+### ROC curve for the model
+
+```{r,echo=FALSE}
+library(ROCR)
+ROCRpred <- prediction(predict, test_75$Attrition)
+ROCRperf <- performance(ROCRpred, 'tpr', 'fpr')
+plot(ROCRperf, colorize = TRUE, text.adj = c(-0.2, 1.7))
+```
+
+* The above ROC curve shows a model with almost no prediction power which is not a good fit for prediction. But that is what we have to live with.
+
+## Conclusion
+
+The Model fitted onlu gave an accuracy of 51.3%. The LASSO regression converte many variable coefficients to zero and selected the following predictors to have significant effect Business Travel, Daily rate, Distance from home, Hourly rate, Job Role, Marital Status, Monthly Income, Monthly rate, Percent Salary Hike, Relationship satisfaction, Stock option level, Training time last year and Years at company. Using this model reduced the number of predictors we used but the accuracy is not much of an improvement from the previous model.
+
