@@ -1,2 +1,2 @@
 # data-science
-Data Analysis, Statistics, R
+Data Analysis, Statistics, R, Excel
